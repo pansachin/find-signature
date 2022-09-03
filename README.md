@@ -17,3 +17,10 @@ go run main.go
   + Signature coming from payload.
 - Expected Signature
   + Signature we need to successfully test againts `webhook-listener`.
+
+## Example logs
+```
+2022/09/02 17:03:12 Actual signature: sha1=89945d34ad0073f7fb92d28cf154da642a324a0e
+2022/09/02 17:03:12 Expected signature: sha1=89945d34ad0073f7fb92d28cf154da642a324a0e
+2022/09/02 17:03:12 👏🎉Congratulations!!!!Signature matched
+```
