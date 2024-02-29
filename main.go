@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 )
@@ -33,7 +33,7 @@ func main() {
 
 func GetSignature(w http.ResponseWriter, r *http.Request) {
 	// Parse payload
-	payload, err := ioutil.ReadAll(r.Body)
+	payload, err := io.ReadAll(r.Body)
 	if err != nil || len(payload) == 0 {
 		log.Printf("error occured: %v", ErrParsingPayload)
 		return
@@ -60,4 +60,37 @@ func GetSignature(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Println("👏🎉Congratulations!!!!Signature matched")
+	return
+}
+
+func ForgeSignature(w http.ResponseWriter, r *http.Request) (string, error) {
+	// Parse payload
+	payload, err := io.ReadAll(r.Body)
+	if err != nil || len(payload) == 0 {
+		log.Printf("error occured: %v", ErrParsingPayload)
+		return "", err
+	}
+
+	// set webhook secret
+	secret := "askjhdkjashdkj"
+	signature := r.Header.Get("X-Hub-Signature")
+	if len(signature) == 0 {
+		log.Printf("error occured: %v", ErrMissingHubSignatureHeader)
+		return "", err
+	}
+	log.Printf("Actual signature: %s", signature)
+
+	mac := hmac.New(sha1.New, []byte(secret))
+	_, _ = mac.Write(payload)
+	expectedMAC := "sha1=" + hex.EncodeToString(mac.Sum(nil))
+	log.Printf("Expected signature: %s", expectedMAC)
+
+	// Verify secret
+	if !hmac.Equal([]byte(signature), []byte(expectedMAC)) {
+		log.Printf("error occured: %v", ErrHMACVerificationFailed)
+		return expectedMAC, err
+	}
+
+	log.Println("👏🎉Congratulations!!!!Signature matched")
+	return expectedMAC, nil
 }
